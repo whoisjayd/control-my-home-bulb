@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#111827">
+  <title>Bulb Control Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png">
+  <link rel="manifest" href="/manifest.json">
+  <script>
+    // Apply theme from localStorage on initial load to prevent flash
+    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  </script>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen flex items-center justify-center font-sans p-4">
+  <!-- Full-screen loading overlay for initial login -->
+  <div id="loading" class="hidden fixed inset-0 bg-gray-900 bg-opacity-60 flex items-center justify-center z-50 backdrop-blur-sm">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-500"></div>
+  </div>
+
+  <!-- Login Screen -->
+  <div id="login" class="w-full max-w-sm bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 transform transition-all duration-300">
+    <h1 class="text-3xl font-bold text-center mb-2 text-gray-800 dark:text-white">Bulb Control</h1>
+    <p class="text-center text-gray-500 dark:text-gray-400 mb-6">Enter API key to connect</p>
+    <div class="relative mb-4">
+      <input type="password" id="apiKey" placeholder="API Key" class="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 rounded-lg outline-none transition" aria-label="API Key" required>
+      <button id="toggleApiKey" class="absolute right-3 top-3.5 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300" aria-label="Toggle API key visibility">
+        <svg id="eyeIcon" class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+            <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
+        </svg>
+      </button>
+    </div>
+    <button id="loginBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-transform transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-500/50" aria-label="Login">
+      Sign In
+    </button>
+    <p id="loginError" class="text-red-500 text-sm mt-4 text-center h-5" role="alert"></p>
+  </div>
+
+  <!-- Main Dashboard -->
+  <div id="dashboard" class="hidden w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-xl transform transition-all duration-300">
+    <!-- Header -->
+    <header class="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-800/50 rounded-t-2xl border-b border-gray-200 dark:border-gray-700">
+      <div class="flex items-center space-x-3">
+        <div id="status" class="w-3 h-3 rounded-full bg-gray-400" aria-label="Device status"></div>
+        <div>
+          <h1 id="deviceName" class="font-bold text-gray-800 dark:text-white">Bulb Control</h1>
+          <p id="statusText" class="text-xs text-gray-500 dark:text-gray-400">Offline</p>
+        </div>
+        <div id="activityIndicator" class="hidden w-4 h-4 border-2 border-dashed rounded-full animate-spin border-sky-400"></div>
+      </div>
+      <div class="flex items-center gap-2">
+        <!-- Install Button -->
+        <button id="installBtn" class="hidden p-2 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition" aria-label="Install App">
+            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+        </button>
+        <button id="themeToggle" class="p-2 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition" aria-label="Toggle dark mode">
+          <svg id="themeIcon" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"></svg>
+        </button>
+        <button id="logoutBtn" class="p-2 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition" aria-label="Logout">
+          <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V5h10a1 1 0 100-2H3zm12.293 7.293a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 01-1.414-1.414L16.586 13H9a1 1 0 110-2h7.586l-1.293-1.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Controls Body -->
+    <main class="p-6 space-y-6">
+      <div class="flex justify-center">
+        <button id="powerBtn" class="w-20 h-20 rounded-full flex items-center justify-center transition-all duration-300 text-white shadow-lg focus:outline-none focus:ring-4" aria-label="Toggle power">
+          <svg class="h-10 w-10" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.5 9a.5.5 0 00-1 0v5a.5.5 0 001 0V9zM9 4a1 1 0 112 0v1a1 1 0 11-2 0V4z" clip-rule="evenodd" />
+          </svg>
+        </button>
+      </div>
+      
+      <div class="space-y-6">
+        <!-- Brightness -->
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <label for="dimmer" class="text-sm font-medium text-gray-600 dark:text-gray-300">Brightness</label>
+            <span class="text-sm text-gray-500 dark:text-gray-400" id="dimmerValue">0%</span>
+          </div>
+          <input type="range" id="dimmer" min="0" max="100" class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer slider-thumb" aria-label="Brightness">
+        </div>
+        <!-- Color Temperature -->
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <label for="ct" class="text-sm font-medium text-gray-600 dark:text-gray-300">Temperature</label>
+            <span class="text-sm text-gray-500 dark:text-gray-400" id="ctValue">153K</span>
+          </div>
+          <input type="range" id="ct" min="153" max="500" class="w-full h-2 bg-gradient-to-r from-amber-300 to-blue-400 rounded-lg appearance-none cursor-pointer slider-thumb" aria-label="Color Temperature">
+        </div>
+        <!-- Hue -->
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <label for="hue" class="text-sm font-medium text-gray-600 dark:text-gray-300">Hue</label>
+            <span class="text-sm text-gray-500 dark:text-gray-400" id="hueValue">0°</span>
+          </div>
+          <input type="range" id="hue" min="0" max="360" class="w-full h-2 bg-gradient-to-r from-red-500 via-yellow-500 to-red-500 rounded-lg appearance-none cursor-pointer slider-thumb" aria-label="Color Hue">
+        </div>
+        <!-- Saturation -->
+        <div>
+            <div class="flex justify-between items-center mb-1">
+                <label for="saturation" class="text-sm font-medium text-gray-600 dark:text-gray-300">Saturation</label>
+                <span class="text-sm text-gray-500 dark:text-gray-400" id="saturationValue">0%</span>
+            </div>
+            <input type="range" id="saturation" min="0" max="100" class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer slider-thumb" aria-label="Saturation">
+        </div>
+      </div>
+      
+      <!-- Device Info & Logs -->
+      <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+        <button id="toggleInfo" class="text-sm text-gray-500 dark:text-gray-400 hover:text-blue-500 transition focus:outline-none w-full text-left">
+          Device Information
+        </button>
+        <div id="infoContainer" class="hidden mt-3 text-xs space-y-2">
+            <div class="grid grid-cols-2 gap-x-4 gap-y-1">
+                <span class="font-medium text-gray-500 dark:text-gray-400">IP Address:</span> <span id="ipAddressInfo">...</span>
+                <span class="font-medium text-gray-500 dark:text-gray-400">Version:</span> <span id="infoVersion">...</span>
+                <span class="font-medium text-gray-500 dark:text-gray-400">Module:</span> <span id="infoModule">...</span>
+                <span class="font-medium text-gray-500 dark:text-gray-400">Boot Count:</span><span id="infoBootCount">...</span>
+                <span class="font-medium text-gray-500 dark:text-gray-400">Uptime:</span> <span id="infoUptime">...</span>
+                <span class="font-medium text-gray-500 dark:text-gray-400">WiFi Signal:</span> <span id="infoWifiSignal">...</span>
+            </div>
+             <button id="toggleLogs" class="w-full text-left text-blue-500 hover:underline pt-2" aria-expanded="false" aria-controls="logsContainer">Show Live Logs</button>
+             <div id="logsContainer" class="hidden mt-2 bg-black/50 rounded p-2 h-24 overflow-y-auto font-mono text-gray-300" aria-live="polite"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="/js/main.js"></script>
+</body>
+</html>

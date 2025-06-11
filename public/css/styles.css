@@ -1,0 +1,48 @@
+/* Custom properties for slider thumb colors */
+:root {
+  --slider-thumb-color: #3b82f6; /* blue-500 */
+  --slider-thumb-hover-color: #2563eb; /* blue-600 */
+}
+
+html.dark {
+  --slider-thumb-color: #60a5fa; /* blue-400 */
+  --slider-thumb-hover-color: #93c5fd; /* blue-300 */
+}
+
+/* Base class for all slider thumbs */
+.slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  background: var(--slider-thumb-color);
+  border-radius: 50%;
+  border: 2px solid #fff;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+.slider-thumb:hover {
+  background: var(--slider-thumb-hover-color);
+}
+
+/* Hue slider specific background */
+#hue {
+  background-image: linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000);
+}
+
+/* Saturation slider dynamic background */
+#saturation {
+  background-image: linear-gradient(to right, #808080, var(--saturation-end-color, #ff0000));
+}
+
+/* Power button dynamic styling */
+#powerBtn.bg-gray-600 {
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.4), 0 1px 2px rgba(255,255,255,0.2);
+    --tw-ring-color: rgba(107, 114, 128, 0.5); /* gray-500 */
+}
+#powerBtn.bg-yellow-400 {
+    box-shadow: 0 0 20px rgba(250, 204, 21, 0.7), inset 0 2px 4px rgba(0,0,0,0.2);
+    --tw-ring-color: rgba(250, 204, 21, 0.5); /* yellow-400 */
+}
