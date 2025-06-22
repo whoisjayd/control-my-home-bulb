@@ -1,172 +1,152 @@
 # Tasmota MQTT Smart Bulb Dashboard
 
-A robust, responsive, and self-hosted Progressive Web App (PWA) dashboard designed to control Tasmota-flashed smart bulbs via MQTT. This project is optimized for seamless one-click deployment on **Vercel**, providing a modern, intuitive interface to manage your smart lighting with real-time updates and comprehensive device information.
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FWhoIsJayD%2Fcontrol-my-home-bulb&env=API_KEY,MQTT_HOST,MQTT_PORT,MQTT_USERNAME,MQTT_PASSWORD,MQTT_PROTOCOL,MQTT_TOPIC,TASMOTA_MAC&envDescription=Enter%20your%20project%20details.%20See%20README%20for%20more%20info.&project-name=my-bulb-control&repository-name=my-bulb-control)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Express.js](https://img.shields.io/badge/Express.js-000000?logo=express&logoColor=white)](https://expressjs.com/)
+[![MQTT](https://img.shields.io/badge/MQTT-660066?logo=mqtt&logoColor=white)](https://mqtt.org/)
+![visitor badge](https://visitor-badge.laobi.icu/badge?page_id=https://github.com/whoisjayd/control-my-home-bulb)
+
+
+A robust, responsive, and self-hosted Progressive Web App (PWA) to control your Tasmota-flashed smart bulbs via MQTT. This project provides a modern, intuitive interface to manage your smart lighting with real-time updates and is optimized for one-click deployment on **Vercel**.
 
 ![Dashboard Screenshot](https://i.imgur.com/vIQ0ijk.png)
 
+## 📋 Table of Contents
+
+- [✨ Features](#-features)
+- [🛠️ How It Works](#️-how-it-works)
+- [🚀 Getting Started](#-getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Environment Variables](#environment-variables)
+- [☁️ Deployment](#️-deployment)
+  - [One-Click Vercel Deploy](#one-click-vercel-deploy)
+  - [Manual Deployment](#manual-deployment)
+- [💻 Local Development](#-local-development)
+- [📱 Installing as a PWA](#-installing-as-a-pwa)
+- [🤝 Contributing](#-contributing)
+- [📜 License](#-license)
+- [🙏 Acknowledgments](#-acknowledgments)
+
 ## ✨ Features
 
-- **Real-Time Updates**: Utilizes HTTP polling to keep the dashboard synchronized with the bulb's current state, ensuring a responsive user experience.
-- **Power Control**: Toggle the bulb on or off with a single click.
-- **Color Temperature Adjustment**: Fine-tune white balance from warm (153 mired) to cool (500 mired) for perfect ambiance.
-- **RGB Color Selection**: Choose any color using an intuitive hue slider for vibrant lighting effects.
-- **Brightness Control**: Adjust brightness levels from 0% to 100% to suit your environment.
-- **Device Information**: Monitor critical device details, including:
-  - IP address
-  - Hostname
-  - Firmware version
-  - Module type
-  - Restart reason
-  - Boot count
-  - Wi-Fi status
-- **Secure Authentication**: Requires an API key for access, configured via environment variables for enhanced security.
-- **Responsive & PWA-Compatible**: Clean, mobile-friendly UI with offline support and the ability to install as a standalone app on desktop and mobile devices.
-- **Live Logs**: Toggle a live log view to debug and monitor raw MQTT communication data in real time.
-- **Error Handling**: Robust validation and error logging ensure reliable operation and easy troubleshooting.
+- **Real-Time Control**: Instantly syncs with your bulb's state using an efficient MQTT-first approach, backed by HTTP polling.
+- **Full Power Control**: Toggle the bulb on or off with a satisfying, responsive button.
+- **White Ambiance**: Fine-tune color temperature from warm (153 mired) to cool (500 mired).
+- **RGB Color Selection**: An intuitive hue and saturation slider lets you pick the perfect color.
+- **Brightness Dimmer**: Adjust brightness levels from 0% to 100%.
+- **Secure Authentication**: Protects your dashboard with a mandatory API key.
+- **PWA-Compatible**: Install it as a standalone app on desktop or mobile for a native-like experience with offline support.
+- **Live Device Info**: Monitor critical details at a glance:
+  - IP Address & Hostname
+  - Firmware Version & Module
+  - Wi-Fi Signal Strength & Uptime
+  - Boot Count & Restart Reason
+- **Live Logging**: A toggleable console to view raw MQTT message data for easy debugging.
 
-## 🛠️ Technical Architecture
+## 🛠️ How It Works
 
-### Backend
-- **Framework**: Built with [Express.js](https://expressjs.com/) for a lightweight and scalable server.
-- **MQTT Communication**: Uses [MQTT.js](https://github.com/mqttjs/MQTT.js) to connect to an MQTT broker, subscribing to Tasmota’s `stat/`, `tele/`, and discovery topics for real-time updates and publishing to `cmnd/` topics for control.
-- **Logging**: [Winston](https://github.com/winstonjs/winston) provides detailed logging with timestamped JSON output and colorized console logs for development.
-- **Validation**: [Zod](https://github.com/colinhacks/zod) ensures safe parsing of API inputs for color temperature, brightness, and HSB color values.
-- **Security**: API key-based authentication protects all control endpoints.
+This project consists of a lightweight Express backend and a vanilla JavaScript frontend.
 
-### Frontend
-- **Static Assets**: Served from the `public` directory, including HTML, CSS, and JavaScript for a fast, client-side experience.
-- **PWA Support**: Includes a service worker and manifest for offline functionality and app-like installation.
-- **Responsive Design**: Built with modern CSS (e.g., Tailwind CSS or custom styles) for a consistent experience across devices.
+-   **Backend (Express.js & TypeScript)**:
+    -   Connects securely to your MQTT broker.
+    -   Subscribes to Tasmota's `stat/`, `tele/`, and `discovery` topics to listen for real-time state changes.
+    -   Publishes commands to the `cmnd/` topic to control the bulb.
+    -   Serves the frontend application and provides a simple, authenticated API for the client to fetch status and send commands.
+    -   Uses **Zod** for robust and type-safe validation of all incoming API requests.
+    -   Uses **Winston** for structured, detailed logging.
 
-### MQTT Integration
-- Subscribes to:
-  - `stat/<MQTT_TOPIC>/+` for device status updates (e.g., power, dimmer, color).
-  - `tele/<MQTT_TOPIC>/+` for telemetry data (e.g., state, info).
-  - `tasmota/discovery/<TASMOTA_MAC>/config` for device discovery.
-- Publishes commands to `cmnd/<MQTT_TOPIC>/<COMMAND>` for controlling power, color temperature, brightness, and HSB color.
+-   **Frontend (HTML, CSS, JS)**:
+    -   A responsive, mobile-first single-page application built with **Tailwind CSS**.
+    -   Communicates with the backend via a simple API.
+    -   Features a service worker (`service-worker.js`) for PWA functionality and offline caching of assets.
+    -   Dynamically updates the UI based on the latest device state received from the backend.
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-- A Tasmota-flashed smart bulb configured with your MQTT broker.
+
+- A Tasmota-flashed smart bulb connected to your network.
 - An MQTT broker (e.g., [HiveMQ](https://www.hivemq.com/), [Mosquitto](https://mosquitto.org/)).
 - [Node.js](https://nodejs.org/) (v16 or higher) for local development.
-- A [Vercel](https://vercel.com/) account for deployment.
+- A [Vercel](https://vercel.com/) account for easy deployment.
 
 ### Environment Variables
-Configure the following variables in your Vercel project settings or in a `.env` file in the project root for local development:
 
-| Variable          | Description                                           | Example Value                | Required |
-|-------------------|-------------------------------------------------------|------------------------------|----------|
-| `API_KEY`         | Secret key for dashboard login authentication.         | `MySecureSecretKey123`       | Yes      |
-| `MQTT_HOST`       | Address of your MQTT broker.                          | `your-id.s1.eu.hivemq.cloud` | Yes      |
-| `MQTT_PORT`       | MQTT broker port (e.g., `8883` for MQTTS).            | `8883`                       | Yes      |
-| `MQTT_USERNAME`   | MQTT broker username.                                 | `my-tasmota-user`            | Optional |
-| `MQTT_PASSWORD`   | MQTT broker password.                                 | `MyMQTTPassword`             | Optional |
-| `MQTT_PROTOCOL`   | Protocol (`mqtts` for secure, or `mqtt`).             | `mqtts`                      | Yes      |
-| `MQTT_TOPIC`      | Base topic of your Tasmota device.                    | `tasmota_368072`             | Yes      |
-| `TASMOTA_MAC`     | MAC address of your Tasmota device (no colons).       | `40F520368072`               | Yes      |
-| `PORT`            | Port for the Express server (default: `3000`).        | `3000`                       | Optional |
+Create a `.env` file in the root of your project or configure these directly in your Vercel project settings.
 
-**Example `.env` file**:
-```env
-API_KEY=MySecureSecretKey123
-MQTT_HOST=your-id.s1.eu.hivemq.cloud
-MQTT_PORT=8883
-MQTT_USERNAME=my-tasmota-user
-MQTT_PASSWORD=MyMQTTPassword
-MQTT_PROTOCOL=mqtts
-MQTT_TOPIC=tasmota_368072
-TASMOTA_MAC=40F520368072
-PORT=3000
-```
+| Variable | Description | Example Value | Required |
+| :--- | :--- | :--- | :--- |
+| `API_KEY` | Secret key for dashboard login. | `MySecureSecretKey123` | **Yes** |
+| `MQTT_HOST`| Address of your MQTT broker. | `your-id.s1.eu.hivemq.cloud`| **Yes** |
+| `MQTT_PORT`| Port for your MQTT broker. | `8883` | **Yes** |
+| `MQTT_USERNAME`| MQTT broker username. | `my-tasmota-user` | Optional |
+| `MQTT_PASSWORD`| MQTT broker password. | `MyMQTTPassword` | Optional |
+| `MQTT_PROTOCOL`| Connection protocol (`mqtts` or `mqtt`).| `mqtts` | **Yes** |
+| `MQTT_TOPIC`| Base topic of your Tasmota device. | `tasmota_368072` | **Yes** |
+| `TASMOTA_MAC`| MAC address of your device (no colons).| `40F520368072` | **Yes** |
+| `PORT` | Port for the server (default: `3000`).| `3000` | Optional |
 
-### Deployment on Vercel
-1. **Clone the repository**:
-   ```sh
-   git clone https://github.com/WhoIsJayD/control-my-home-bulb
-   cd control-my-home-bulb
-   ```
+## ☁️ Deployment
 
-2. **Push to GitHub**:
-   - Create a new repository on GitHub.
-   - Push the project to your repository:
-     ```sh
-     git remote add origin <your-repo-url>
-     git push -u origin main
-     ```
+### One-Click Vercel Deploy
 
-3. **Deploy to Vercel**:
-   - Log in to your Vercel account.
-   - Import the GitHub repository via the Vercel dashboard.
-   - Add the environment variables listed above in the Vercel project settings.
-   - Deploy the project.
-   - Access the dashboard at the provided Vercel URL (e.g., `https://your-project.vercel.app`).
+The fastest way to get started is to click the button below and follow the on-screen instructions to clone this repository and deploy it to your Vercel account.
 
-### Local Development
-1. **Clone the repository**:
-   ```sh
-   git clone https://github.com/WhoIsJayD/control-my-home-bulb
-   cd control-my-home-bulb
-   ```
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FWhoIsJayD%2Fcontrol-my-home-bulb&env=API_KEY,MQTT_HOST,MQTT_PORT,MQTT_USERNAME,MQTT_PASSWORD,MQTT_PROTOCOL,MQTT_TOPIC,TASMOTA_MAC&envDescription=Enter%20your%20project%20details.%20See%20README%20for%20more%20info.&project-name=my-bulb-control&repository-name=my-bulb-control)
 
-2. **Install Vercel CLI**:
-   ```sh
-   npm install -g vercel
-   ```
+### Manual Deployment
 
-3. **Install dependencies**:
-   ```sh
-   npm install
-   ```
+1.  Fork this repository and push it to your own GitHub account.
+2.  Log in to Vercel and import your forked repository.
+3.  Add the required **Environment Variables** listed above in the Vercel project settings.
+4.  Deploy! You will get a custom URL for your new dashboard.
 
-4. **Create a `.env` file** in the project root with the environment variables listed above.
+## 💻 Local Development
 
-5. **Run the development server**:
-   ```sh
-   vercel dev
-   ```
+1.  **Clone the repository**:
+    ```sh
+    git clone https://github.com/WhoIsJayD/control-my-home-bulb.git
+    cd control-my-home-bulb
+    ```
 
-6. Open the dashboard in your browser at the provided URL (typically `http://localhost:3000`).
+2.  **Install dependencies**:
+    ```sh
+    npm install
+    ```
 
-### Installing as a PWA
-- Open the dashboard in a PWA-compatible browser (e.g., Chrome, Edge, Safari).
-- Look for the "Add to Home Screen" or "Install App" prompt in the browser.
-- Follow the prompts to install the dashboard as a standalone app on your mobile or desktop device.
-- The PWA supports offline access for cached assets, ensuring a smooth experience even with limited connectivity.
+3.  **Create a `.env` file** in the project root and add the environment variables from the table above.
 
+4.  **Run the development server using Vercel CLI**:
+    ```sh
+    npm install -g vercel # If you don't have it
+    vercel dev
+    ```
+
+5.  Open your browser to the URL provided (typically `http://localhost:3000`).
+
+## 📱 Installing as a PWA
+
+For quick access, you can install this dashboard as an app on your computer or mobile device.
+1.  Open the dashboard's URL in a compatible browser (like Chrome, Edge, or Safari).
+2.  Look for the "Install" icon in the address bar or the "Add to Home Screen" option in the browser menu.
+3.  Follow the prompts to install. The app will be available on your home screen or in your app drawer.
 
 ## 🤝 Contributing
-We welcome contributions to enhance the dashboard! To contribute:
 
-1. **Fork the repository** on GitHub.
-2. **Create a feature branch**:
-   ```sh
-   git checkout -b feature/AmazingFeature
-   ```
-3. **Commit your changes**:
-   ```sh
-   git commit -m 'Add some AmazingFeature'
-   ```
-4. **Push to the branch**:
-   ```sh
-   git push origin feature/AmazingFeature
-   ```
-5. **Open a pull request** on GitHub, describing your changes in detail.
+Contributions are welcome! If you have an idea for a new feature or have found a bug, please follow these steps:
 
+1.  Fork the repository.
+2.  Create a new feature branch (`git checkout -b feature/AmazingFeature`).
+3.  Commit your changes (`git commit -m 'Add some AmazingFeature'`).
+4.  Push to the branch (`git push origin feature/AmazingFeature`).
+5.  Open a Pull Request.
 
 ## 📜 License
+
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
-- [Tasmota](https://tasmota.github.io/docs/) for providing open-source firmware for smart devices.
-- [Vercel](https://vercel.com/) for seamless deployment and hosting.
-- [MQTT.js](https://github.com/mqttjs/MQTT.js) for reliable MQTT communication.
-- [Express.js](https://expressjs.com/) for a robust backend framework.
-- [Winston](https://github.com/winstonjs/winston) for comprehensive logging.
-- [Zod](https://github.com/colinhacks/zod) for type-safe input validation.
-
-## 📞 Support
-For issues, questions, or feature requests, please:
-- Open an issue on the [GitHub repository](https://github.com/WhoIsJayD/control-my-home-bulb).
-- Reach out to the community via GitHub Discussions or relevant Tasmota forums.
+- [Tasmota](https://tasmota.github.io/docs/) for their incredible open-source firmware.
+- [Vercel](https://vercel.com/) for their seamless deployment and hosting platform.
+- The creators and maintainers of [Express.js](https://expressjs.com/), [MQTT.js](https://github.com/mqttjs/MQTT.js), [Zod](https://github.com/colinhacks/zod), and [Winston](https://github.com/winstonjs/winston).
